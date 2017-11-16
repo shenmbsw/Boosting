@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Created on Wed Nov 15 17:26:24 2017
+@author: Shen Shen
+This is a demo code for EC503 Project
+"""
+
 import numpy as np
 from sklearn import datasets
 from sklearn import tree
@@ -11,23 +17,24 @@ import matplotlib.pyplot as plt
 
 
 class Gradiant_boost():
-    def __init__(self, max_iter):
+    def __init__(self, structure_params,tree_params):
         self.loss_array = []
         self.gamma_array = []
         self.tree_array = []
-        self.maxiter = max_iter
-        self.tree_params = {'max_depth': 4, 'min_samples_split': 2}
+        self.maxiter = structure_params['max_iter']
+        self.tree_params = tree_params
+        self.learning_rate = structure_params['learning_rate']
 
     # calculate the Mse loss
     def loss(self,y,y_pred):
-        return (y - y_pred) ** 2    
+        return (y - y_pred) ** 2
 
     # find argmin gamma in respect of loss
     # using exhaused sreach here
     # this is a convex optimization problem
     def argmin_loss(self,y,Fmm1,h):
         all_loss = []
-        all_g = np.linspace(-5.0, 5.0, num=100)
+        all_g = np.linspace(-10.0, 10.0, num=500)
         for g in all_g:
             y_pred = Fmm1 + g*h
             this_loss = np.sum(self.loss(y,y_pred))
@@ -46,15 +53,14 @@ class Gradiant_boost():
     def Init_tree(self,X):
         sam_num = X.shape[0]
         return np.ones(sam_num)
-   
+
     def fit(self,X_train,y_train):
         sam_num = X_train.shape[0]
         Fmm1 = np.zeros(sam_num)
         iter_gamma = np.mean(y_train)
         iter_tree = self.Init_tree
-        Fm = iter_gamma * iter_tree(X_train)
+        Fm = self.learning_rate * iter_gamma * iter_tree(X_train)
         iter_loss =  np.sum(self.loss(y_train,Fm))
-
         self.gamma_array.append(iter_gamma)
         self.tree_array.append(iter_tree)
         self.loss_array.append(iter_loss)
@@ -67,7 +73,7 @@ class Gradiant_boost():
             hx = iter_tree(X_train)
             iter_gamma = self.argmin_loss(y_train, Fm, hx)
             Fmm1 = Fm
-            Fm = Fm + iter_gamma * iter_tree(X_train)
+            Fm = Fm + self.learning_rate * iter_gamma * iter_tree(X_train)
             iter_loss = np.sum(self.loss(y_train,Fm))          
             self.gamma_array.append(iter_gamma)
             self.tree_array.append(iter_tree)
@@ -75,9 +81,11 @@ class Gradiant_boost():
 
     def predict(self,X_test):
         max_it = len(self.gamma_array)
-        y_pred = np.zeros(X_test.shape[0])
         for i in range(max_it):
-            y_pred = y_pred + self.gamma_array[i] * self.tree_array[i](X_test)
+            if i == 0:
+                y_pred = self.learning_rate * self.gamma_array[i] * self.tree_array[i](X_test)
+            else:
+                y_pred = y_pred + self.learning_rate * self.gamma_array[i] * self.tree_array[i](X_test)
         return y_pred
 
 # Load data
@@ -88,22 +96,39 @@ offset = int(X.shape[0] * 0.9)
 X_train, y_train = X[:offset], y[:offset]
 X_test, y_test = X[offset:], y[offset:]
 
-mi = 10
+# bulid Gradiant boosting model
+mi = 300
+structure_params = {'max_iter': mi, 'learning_rate': 0.03}
+tree_params = {'max_depth': 4, 'min_samples_split': 2}
 
-DGR = Gradiant_boost(mi)
+DGR = Gradiant_boost(structure_params,tree_params)
 DGR.fit(X_train,y_train)
-b = DGR.predict(X_test)
 
 train_loss = []
 test_loss = []
 y_pred = np.zeros(X_test.shape[0])
 for i in range(mi):
-    y_pred = y_pred + DGR.gamma_array[i] * DGR.tree_array[i](X_test)
-    mse = mean_squared_error(y_test,y_pred)/51
+    y_pred = y_pred + DGR.learning_rate * DGR.gamma_array[i] * DGR.tree_array[i](X_test)
+    mse = mean_squared_error(y_test,y_pred)
     test_loss.append(mse)
     train_loss.append(DGR.loss_array[i]/455)
 
 x_axis = np.linspace(1,mi,mi) 
-plt.plot(x_axis,train_loss,x_axis,test_loss)
+plt.title('loss')
+plt.plot(x_axis,train_loss, 'b-',
+         label='Training Set Loss')
+plt.plot(x_axis,test_loss, 'r-',
+         label='Test Set Loss')
+plt.legend(loc='upper right')
+plt.xlabel('Boosting Iterations')
+plt.ylabel('MSE Loss')
+
+train_pred = DGR.predict(X_train)
+print('train_loss:%f'%mean_squared_error(y_train,train_pred))
+test_pred = DGR.predict(X_test)
+print('test_loss:%f'%mean_squared_error(y_test,test_pred))
+print('min testing loss:%f'%min(test_loss))
+
+
 
     
