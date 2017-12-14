@@ -87,10 +87,15 @@ switch(mode)
         estimateclasssum=zeros(size(datafeatures,1),1);
         for t=1:length(model);
             estimateclasssum=estimateclasssum+model(t).alpha*ApplyClassTreshold(model(t), datafeatures);
+            
+            % calculating the error vs class iter.
+            estimateclasstotal(:,t)=sign(estimateclasssum);
+            %error_test(t)=sum(estimateclasstotal~=testdata)/length(testdata);
+            
         end
         % If the total sum of all weak classifiers
         % is less than zero it is probablly class -1 otherwise class 1;
-        estimateclasstotal=sign(estimateclasssum);
+        %estimateclasstotal=sign(estimateclasssum);
         
     otherwise
         error('adaboost:inputs','unknown mode');
