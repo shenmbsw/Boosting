@@ -1,3 +1,0 @@
-Nov 9, Shen: 
-https://zlatankr.github.io/posts/2017/02/17/kaggle-houses
-it provide good example of xgboost
