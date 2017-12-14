@@ -259,7 +259,7 @@ C = 512 $\sigma = 0.0078$ & & & \\
 
 \subsubsection{Step length}
 
-Gradient Boosting model is tested with different step lengths. The loss function in the demonstration is MSE loss. Notation iter indicates how many basic learners the gradient boost model uses. The basic learner here is CART regression trees with max depth 2. Step length is fixed to 1 and shrinkage parameter is 0.05.
+Gradient Boosting model is tested with different step lengths. The loss function in the demonstration is MSE loss. Notation iter indicates how many basic learners the gradient boost model uses. The basic learner here is CART regression trees with max depth 2. Step length is fixed to 0.1 and shrinkage parameter is 0.05.
 
 \begin{table}[ht]
 \centering
@@ -268,7 +268,7 @@ Gradient Boosting model is tested with different step lengths. The loss function
  \hline
 iter & step length & final tr-loss & final ts-loss & min ts-loss \\ 
  \hline\hline
-20   & fix(1) & 2.368 & 11.086 & 11.086  \\ 
+20   & fix(0.1) & 2.368 & 11.086 & 11.086  \\ 
  \hline\hline
 20   & adapt & 4.544 & 8.499 & 7.908 \\ 
 \hline\hline
